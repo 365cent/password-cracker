@@ -198,23 +198,23 @@ int forkMode(char *password)
     default:
       sprintf(gid, "%.1f.1", id);
       printf("PID %.1f IS %d, CHILD %s IS %d\n", id, getpid(), gid, gChild1); // Child 1
-      partition = bruteForce(3);
+      partition = bruteForce(6);
       // Write the partition to the pipe
       if (partition)
       {
         printf("%s\n", partition);
-        write(fd[1], partition, sizeof(partition));
+        write(fd1[1], partition, sizeof(partition));
 #if DEBUG
         printf("Child 1 wrote: %s\n", partition);
 #endif
       }
-      close(fd[0]);
+      close(fd1[0]);
       // Wait for the grandchild to finish
       waitpid(gChild1, NULL, 0);
       exit(0);
     }
   default:
-    close(fd[1]);
+    close(fd1[1]);
     printf("PID %.1f IS %d, CHILD %.1f IS %d\n", id, getpid(), id + 0.1, child1);
     child2 = fork();
     switch (child2)
@@ -223,25 +223,26 @@ int forkMode(char *password)
       perror("Fork failed");
       return -1;
     case 0:
-      close(fd1[0]);
+      close(fd[0]);
       printf("PID %.1f IS %d, PPID %.1f IS %d\n", id + 0.2, getpid(), id, getppid()); // Child 2
-      partition = bruteForce(6);
+      partition = bruteForce(3);
       // Write the partition to the pipe
       if (partition)
       {
         printf("%s\n", partition);
-        write(fd1[1], partition, sizeof(partition));
+        write(fd[1], partition, sizeof(partition));
 #if DEBUG
         printf("Child 2 wrote: %s\n", partition);
 #endif
       }
-      close(fd1[1]);
+      close(fd[1]);
       exit(0);
     default:
       // Close the write end of pipes
       close(fd[1]);
       close(fd1[1]);
       close(fd2[1]);
+      printf("PID %.1f IS %d, CHILD %.1f IS %d\n", id, getpid(), id + 0.2, child2);
       partition = bruteForce(0);
       if (partition)
       {
